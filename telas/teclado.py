@@ -118,6 +118,6 @@ class TecladoScreen(QWidget):
         if len(nome) < 3 or len(cpf) < 14:
             self.title.setText("⚠️ PREENCHA TODOS OS CAMPOS!")
             self.title.setStyleSheet("color: #ff4d4d; font-weight: bold;")
-            return  # Bloqueia o avanço
+            return  # Bloqueia o avanço.te
 
-        self.parent.setCurrentWidget(self.parent.terminal)
+        self.parent.setCurrentWidget(self.parentrminal)
