@@ -305,37 +305,6 @@ class TerminalScreen(QWidget):
         self.parent.setCurrentWidget(
             self.parent.app_payment
         )
-    # def ler_balanca(self):
-    #
-    #     try:
-    #
-    #         ser = serial.Serial(
-    #             'COM3',
-    #             9600,
-    #             timeout=0.5
-    #         )
-    #
-    #         leitura = ser.readline() \
-    #             .decode('utf-8') \
-    #             .strip()
-    #
-    #         ser.close()
-    #
-    #         resultado = re.findall(
-    #             r"[-+]?\d*\.\d+|\d+",
-    #             leitura
-    #         )
-    #
-    #         return float(resultado[0]) \
-    #             if resultado else 0.0
-    #
-    #     except Exception as e:
-    #
-    #         print(
-    #             f"Erro balança: {e}"
-    #         )
-    #
-    #         return 0.0
 
     def remover_produto(
             self,

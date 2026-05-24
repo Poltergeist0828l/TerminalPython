@@ -4,11 +4,14 @@ from PyQt5.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QPushButton,
-    QFrame
+    QFrame,
+    QMessageBox
 )
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPixmap
+
+import requests
 
 
 class PagamentoScreen(QWidget):
@@ -18,11 +21,13 @@ class PagamentoScreen(QWidget):
 
         self.parent = parent
 
+        self.API_URL = "http://localhost:8080"
+
         try:
             with open(
-                "css/terminal_screen.css",
-                "r",
-                encoding="utf-8"
+                    "css/terminal_screen.css",
+                    "r",
+                    encoding="utf-8"
             ) as file:
 
                 self.setStyleSheet(
@@ -43,6 +48,10 @@ class PagamentoScreen(QWidget):
 
         main_layout.setSpacing(0)
 
+        # =========================
+        # SIDEBAR
+        # =========================
+
         self.sidebar = QFrame()
 
         self.sidebar.setObjectName(
@@ -60,7 +69,6 @@ class PagamentoScreen(QWidget):
         pixmap = QPixmap("css/ima.png")
 
         if not pixmap.isNull():
-
             self.logo.setPixmap(
                 pixmap.scaled(
                     200,
@@ -104,6 +112,10 @@ class PagamentoScreen(QWidget):
 
         layout_lateral.addStretch()
 
+        # =========================
+        # CONTENT
+        # =========================
+
         self.content = QFrame()
 
         self.content.setObjectName(
@@ -137,8 +149,9 @@ class PagamentoScreen(QWidget):
 
         grid_pagamento.setSpacing(20)
 
+        # PIX
         self.btn_pix = QPushButton(
-            "💠 PIX (QR CODE)"
+            "💳 PIX (QR CODE)"
         )
 
         self.btn_pix.setObjectName(
@@ -147,6 +160,11 @@ class PagamentoScreen(QWidget):
 
         self.btn_pix.setMinimumHeight(100)
 
+        self.btn_pix.clicked.connect(
+            self.ir_para_pix
+        )
+
+        # CRÉDITO
         self.btn_credito = QPushButton(
             "💳 CARTÃO DE CRÉDITO"
         )
@@ -157,6 +175,11 @@ class PagamentoScreen(QWidget):
 
         self.btn_credito.setMinimumHeight(100)
 
+        self.btn_credito.clicked.connect(
+            self.finalizar_venda
+        )
+
+        # DÉBITO
         self.btn_debito = QPushButton(
             "💳 CARTÃO DE DÉBITO"
         )
@@ -167,6 +190,11 @@ class PagamentoScreen(QWidget):
 
         self.btn_debito.setMinimumHeight(100)
 
+        self.btn_debito.clicked.connect(
+            self.finalizar_venda
+        )
+
+        # VOLTAR
         self.btn_voltar = QPushButton(
             "CANCELAR / VOLTAR"
         )
@@ -185,19 +213,6 @@ class PagamentoScreen(QWidget):
             lambda: self.parent.setCurrentWidget(
                 self.parent.terminal
             )
-        )
-
-        # PIX ABRE TELA PIX
-        self.btn_pix.clicked.connect(
-            self.ir_para_pix
-        )
-
-        self.btn_credito.clicked.connect(
-            self.finalizar_venda
-        )
-
-        self.btn_debito.clicked.connect(
-            self.finalizar_venda
         )
 
         grid_pagamento.addWidget(
@@ -236,17 +251,99 @@ class PagamentoScreen(QWidget):
             self.content
         )
 
+    # ======================================
+    # PIX FLOW
+    # ======================================
+
     def ir_para_pix(self):
 
-        valor = self.total_final.text()
+        try:
 
-        self.parent.pix.iniciar_pagamento(
-            valor
-        )
+            carrinho = self.parent.terminal.carrinho
 
-        self.parent.setCurrentWidget(
-            self.parent.pix
-        )
+            # cria carrinho
+            response = requests.post(
+
+                "http://localhost:8080/carrinho",
+
+                json=carrinho.to_dict()
+
+            )
+
+            dados = response.json()
+
+            carrinho_id = dados["carrinhoId"]
+            # ======================================
+            # CRIA ORDER
+            # ======================================
+
+            response_order = requests.get(
+                f"{self.API_URL}/order/finalizar",
+                params={
+                    "carrinho_id": carrinho_id
+                }
+            )
+            print(response_order.status_code)
+            print(response_order.text)
+
+            if response_order.status_code != 200:
+                raise Exception(
+                    f"Erro ao criar pedido:\n"
+                    f"status={response_order.status_code}\n"
+                    f"body={response_order.text}"
+                )
+
+            order = response_order.json()
+
+            order_id = order["orderId"]
+
+            # ======================================
+            # GERA PAGAMENTO PIX
+            # ======================================
+
+            response_pagamento = requests.get(
+                f"{self.API_URL}/pagamento",
+                params={
+                    "id": order_id
+                }
+            )
+
+            if response_pagamento.status_code != 200:
+                raise Exception(
+                    f"Erro ao gerar PIX\n"
+                    f"status={response_pagamento.status_code}\n"
+                    f"body={response_pagamento.text}"
+                )
+            pagamento = response_pagamento.json()
+            print(pagamento)
+            qr_code = pagamento["qrCode"]
+            qr_code_base64 = pagamento["qrCodeBase64"]
+
+            # ======================================
+            # ABRE TELA PIX
+            # ======================================
+
+            self.parent.pix.iniciar_pagamento(
+                pagamento["valor"],
+                pagamento["qrCode"],
+                pagamento["qrCodeBase64"]
+            )
+
+            self.parent.setCurrentWidget(
+                self.parent.pix
+            )
+
+        except Exception as e:
+
+            QMessageBox.critical(
+                self,
+                "Erro",
+                str(e)
+            )
+
+    # ======================================
+    # FINALIZAR VENDA
+    # ======================================
 
     def finalizar_venda(self):
 
@@ -265,9 +362,9 @@ class PagamentoScreen(QWidget):
         )
 
         for i in reversed(
-            range(
-                self.parent.terminal.productsLayout.count()
-            )
+                range(
+                    self.parent.terminal.productsLayout.count()
+                )
         ):
 
             widget = self.parent.terminal.productsLayout.itemAt(i).widget()
