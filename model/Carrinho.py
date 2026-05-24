@@ -1,4 +1,4 @@
-from entity.Item import Item
+from model.Item import Item
 
 
 class Carrinho:

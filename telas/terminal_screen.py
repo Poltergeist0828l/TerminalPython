@@ -1,6 +1,3 @@
-import re
-
-import serial
 from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import (
@@ -10,6 +7,8 @@ from PyQt5.QtWidgets import (
 )
 
 from database.DatabaseProdutos import DatabaseProdutos
+from model.Carrinho import Carrinho
+from model.Item import Item
 from model.Produtos import Produtos
 
 
@@ -17,6 +16,7 @@ class TerminalScreen(QWidget):
 
     def __init__(self, parent=None):
         self.db = DatabaseProdutos()
+        self.carrinho = Carrinho("T01")
         super().__init__()
 
         self.parent = parent
@@ -280,7 +280,6 @@ class TerminalScreen(QWidget):
             if not self.codigo_barras.hasFocus():
                 self.codigo_barras.setFocus()
 
-    # AQUI ABRE A TELA DE PAGAMENTO
     def ir_para_pagamento(self):
 
         valor_final = self.totalBox.text()
@@ -293,51 +292,69 @@ class TerminalScreen(QWidget):
             self.parent.pagamento
         )
 
-    def ler_balanca(self):
-
-        try:
-
-            ser = serial.Serial(
-                'COM3',
-                9600,
-                timeout=0.5
-            )
-
-            leitura = ser.readline() \
-                .decode('utf-8') \
-                .strip()
-
-            ser.close()
-
-            resultado = re.findall(
-                r"[-+]?\d*\.\d+|\d+",
-                leitura
-            )
-
-            return float(resultado[0]) \
-                if resultado else 0.0
-
-        except Exception as e:
-
-            print(
-                f"Erro balança: {e}"
-            )
-
-            return 0.0
+    # def ler_balanca(self):
+    #
+    #     try:
+    #
+    #         ser = serial.Serial(
+    #             'COM3',
+    #             9600,
+    #             timeout=0.5
+    #         )
+    #
+    #         leitura = ser.readline() \
+    #             .decode('utf-8') \
+    #             .strip()
+    #
+    #         ser.close()
+    #
+    #         resultado = re.findall(
+    #             r"[-+]?\d*\.\d+|\d+",
+    #             leitura
+    #         )
+    #
+    #         return float(resultado[0]) \
+    #             if resultado else 0.0
+    #
+    #     except Exception as e:
+    #
+    #         print(
+    #             f"Erro balança: {e}"
+    #         )
+    #
+    #         return 0.0
 
     def remover_produto(
             self,
-            widget_linha,
-            valor,
-            peso
+            codigo_produto,
+            widget_linha
     ):
 
-        self.total -= valor
+        item = self.carrinho.buscar_item(
+            codigo_produto
+        )
+
+        if not item:
+            return
+
+        subtotal = item.subtotal()
+
+        peso = (
+            item.received_weight
+            if item.received_weight
+            else item.quantidade
+        )
+
+        self.carrinho.remover_item(
+            codigo_produto
+        )
+
+        self.total -= subtotal
 
         self.peso_total_venda -= peso
 
         self.totalBox.setText(
-            f"R$ {max(0, self.total):.2f}"
+            self.carrinho.total_formatado()
         )
 
         self.peso_display.setText(
@@ -353,113 +370,15 @@ class TerminalScreen(QWidget):
         if not barcode:
             return
 
-        # SEM BALANÇA
         peso_venda = 1.0
 
         try:
 
-            tupla = self.db.buscar_por_codigo(barcode)
+            tupla = self.db.buscar_por_codigo(
+                barcode
+            )
 
-            if tupla:
-
-                produto = Produtos.from_tuple(tupla)
-
-                nome_prod = produto.nome
-
-                preco_prod = float(produto.preco)
-
-                valor_item = preco_prod * peso_venda
-
-                self.total += valor_item
-
-                self.peso_total_venda += peso_venda
-
-                linha_widget = QFrame()
-
-                linha_widget.setObjectName(
-                    "linha_produto"
-                )
-
-                layout_linha = QHBoxLayout(
-                    linha_widget
-                )
-
-                layout_linha.setContentsMargins(
-                    10,
-                    5,
-                    10,
-                    5
-                )
-
-                texto_formatado = (
-                    f"{self.id_contador:<8} "
-                    f"{barcode:<18} "
-                    f"{nome_prod:<25} "
-                    f"{peso_venda:>6.3f}kg  "
-                    f"R$ {valor_item:>7.2f}"
-                )
-
-                lbl_texto = QLabel(
-                    texto_formatado
-                )
-
-                lbl_texto.setObjectName(
-                    "item"
-                )
-
-                btn_remover = QPushButton(
-                    "🗑"
-                )
-
-                btn_remover.setFixedWidth(
-                    40
-                )
-
-                btn_remover.clicked.connect(
-                    lambda: self.remover_produto(
-                        linha_widget,
-                        valor_item,
-                        peso_venda
-                    )
-                )
-
-                layout_linha.addWidget(
-                    lbl_texto,
-                    1
-                )
-
-                layout_linha.addWidget(
-                    btn_remover
-                )
-
-                self.productsLayout.addWidget(
-                    linha_widget
-                )
-
-                self.totalBox.setText(
-                    f"R$ {self.total:.2f}"
-                )
-
-                self.peso_display.setText(
-                    f"{self.peso_total_venda:.3f} KG"
-                )
-
-                self.scroll.verticalScrollBar().setValue(
-                    self.scroll.verticalScrollBar().maximum()
-                )
-
-                self.id_contador += 1
-
-                self.status_api.setText(
-                    "✓ Produto adicionado"
-                )
-
-                self.status_api.setStyleSheet(
-                    "color:#62c8ff;"
-                )
-
-            else:
-
+            if not tupla:
                 self.status_api.setText(
                     "✗ Produto não cadastrado"
                 )
@@ -467,6 +386,126 @@ class TerminalScreen(QWidget):
                 self.status_api.setStyleSheet(
                     "color:#ff4d4d;"
                 )
+
+                return
+
+            produto = Produtos.from_tuple(
+                tupla
+            )
+
+            item_existente = self.carrinho.buscar_item(
+                produto.codigo
+            )
+
+            if item_existente:
+
+                item_existente.quantidade += 1
+
+                valor_item = item_existente.subtotal()
+
+            else:
+
+                item = Item(
+                    produto=produto,
+                    quantidade=1,
+                    received_weight=peso_venda
+                )
+
+                self.carrinho.adicionar_item(
+                    item
+                )
+
+            self.total = self.carrinho.total()
+
+            self.peso_total_venda += peso_venda
+
+            linha_widget = QFrame()
+
+            linha_widget.setObjectName(
+                "linha_produto"
+            )
+
+            layout_linha = QHBoxLayout(
+                linha_widget
+            )
+
+            layout_linha.setContentsMargins(
+                10,
+                5,
+                10,
+                5
+            )
+
+            item_carrinho = self.carrinho.buscar_item(
+                produto.codigo
+            )
+
+            texto_formatado = (
+                f"{self.id_contador:<8} "
+                f"{produto.codigo:<18} "
+                f"{produto.nome:<25} "
+                f"{item_carrinho.quantidade:>3}x   "
+                f"R$ {item_carrinho.subtotal():>7.2f}"
+            )
+
+            lbl_texto = QLabel(
+                texto_formatado
+            )
+
+            lbl_texto.setObjectName(
+                "item"
+            )
+
+            btn_remover = QPushButton(
+                "🗑"
+            )
+
+            btn_remover.setFixedWidth(
+                40
+            )
+
+            btn_remover.clicked.connect(
+                lambda _, c=produto.codigo, w=linha_widget:
+                self.remover_produto(
+                    c,
+                    w
+                )
+            )
+
+            layout_linha.addWidget(
+                lbl_texto,
+                1
+            )
+
+            layout_linha.addWidget(
+                btn_remover
+            )
+
+            self.productsLayout.addWidget(
+                linha_widget
+            )
+
+            self.totalBox.setText(
+                self.carrinho.total_formatado()
+            )
+
+            self.peso_display.setText(
+                f"{self.peso_total_venda:.3f} KG"
+            )
+
+            self.scroll.verticalScrollBar().setValue(
+                self.scroll.verticalScrollBar().maximum()
+            )
+
+            self.id_contador += 1
+
+            self.status_api.setText(
+                "✓ Produto adicionado"
+            )
+
+            self.status_api.setStyleSheet(
+                "color:#62c8ff;"
+            )
 
         except Exception as e:
 
