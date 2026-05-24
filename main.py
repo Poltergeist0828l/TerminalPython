@@ -2,6 +2,7 @@ import sys
 
 from PyQt5.QtWidgets import QApplication, QStackedWidget
 
+from service.SyncService import SyncService
 from telas.bemvindo import TelaBemVindos
 from telas.login_screen import LoginScreen
 from telas.terminal_screen import TerminalScreen
@@ -14,6 +15,8 @@ class MainWindow(QStackedWidget):
 
     def __init__(self):
         super().__init__()
+
+        SyncService().sincronizar_produtos()
 
         self.resize(1600, 900)
 

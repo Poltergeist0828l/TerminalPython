@@ -1,29 +1,31 @@
+import re
+
+import serial
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QFrame,
     QLineEdit, QScrollArea
 )
 
-from PyQt5.QtGui import QPixmap
-from PyQt5.QtCore import Qt, QTimer
-
-import requests
-import serial
-import re
+from database.DatabaseProdutos import DatabaseProdutos
+from model.Produtos import Produtos
 
 
 class TerminalScreen(QWidget):
 
     def __init__(self, parent=None):
+        self.db = DatabaseProdutos()
         super().__init__()
 
         self.parent = parent
 
         try:
             with open(
-                "css/terminal_screen.css",
-                "r",
-                encoding="utf-8"
+                    "css/terminal_screen.css",
+                    "r",
+                    encoding="utf-8"
             ) as file:
 
                 self.setStyleSheet(
@@ -71,7 +73,6 @@ class TerminalScreen(QWidget):
         )
 
         if not pixmap.isNull():
-
             self.logo.setPixmap(
                 pixmap.scaled(
                     250,
@@ -272,12 +273,11 @@ class TerminalScreen(QWidget):
     def garantir_foco(self):
 
         if (
-            self.parent and
-            self.parent.currentWidget() == self
+                self.parent and
+                self.parent.currentWidget() == self
         ):
 
             if not self.codigo_barras.hasFocus():
-
                 self.codigo_barras.setFocus()
 
     # AQUI ABRE A TELA DE PAGAMENTO
@@ -326,10 +326,10 @@ class TerminalScreen(QWidget):
             return 0.0
 
     def remover_produto(
-        self,
-        widget_linha,
-        valor,
-        peso
+            self,
+            widget_linha,
+            valor,
+            peso
     ):
 
         self.total -= valor
@@ -356,33 +356,19 @@ class TerminalScreen(QWidget):
         # SEM BALANÇA
         peso_venda = 1.0
 
-        url_local = (
-            f"http://localhost:8080/produtos/{barcode}"
-        )
-
         try:
 
-            resp_produto = requests.get(
-                url_local,
-                timeout=2
-            )
+            tupla = self.db.buscar_por_codigo(barcode)
 
-            if resp_produto.status_code == 200:
+            if tupla:
 
-                data = resp_produto.json()
+                produto = Produtos.from_tuple(tupla)
 
-                nome_prod = data.get(
-                    "nome",
-                    "Desconhecido"
-                )
+                nome_prod = produto.nome
 
-                preco_prod = float(
-                    data.get("preco", 0)
-                )
+                preco_prod = float(produto.preco)
 
-                valor_item = (
-                    preco_prod * peso_venda
-                )
+                valor_item = preco_prod * peso_venda
 
                 self.total += valor_item
 
@@ -422,7 +408,7 @@ class TerminalScreen(QWidget):
                 )
 
                 btn_remover = QPushButton(
-                    "🗑️"
+                    "🗑"
                 )
 
                 btn_remover.setFixedWidth(
@@ -465,7 +451,7 @@ class TerminalScreen(QWidget):
                 self.id_contador += 1
 
                 self.status_api.setText(
-                    "✅ Produto adicionado"
+                    "✓ Produto adicionado"
                 )
 
                 self.status_api.setStyleSheet(
@@ -475,27 +461,21 @@ class TerminalScreen(QWidget):
             else:
 
                 self.status_api.setText(
-                    "❌ Produto não cadastrado"
+                    "✗ Produto não cadastrado"
                 )
 
                 self.status_api.setStyleSheet(
                     "color:#ff4d4d;"
                 )
 
-        except requests.exceptions.ConnectionError:
+        except Exception as e:
 
             self.status_api.setText(
-                "⚠️ Java Desligado"
+                "✗ Erro"
             )
 
             self.status_api.setStyleSheet(
                 "color:#ff4d4d;"
-            )
-
-        except Exception as e:
-
-            self.status_api.setText(
-                "⚠️ Erro"
             )
 
             print(f"Erro: {e}")
