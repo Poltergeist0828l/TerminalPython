@@ -218,13 +218,15 @@ class TerminalScreen(QWidget):
         self.btn_pagar.clicked.connect(
             self.ir_para_pagamento
         )
-
         self.btn_app = QPushButton(
             "PAGAR NO APP"
         )
 
         self.btn_app.setObjectName(
             "app"
+        )
+        self.btn_app.clicked.connect(
+            self.ir_para_app
         )
 
         layout_botoes.addWidget(
@@ -292,6 +294,17 @@ class TerminalScreen(QWidget):
             self.parent.pagamento
         )
 
+    def ir_para_app(self):
+
+        valor = self.totalBox.text()
+
+        self.parent.app_payment.iniciar_pagamento(
+            valor
+        )
+
+        self.parent.setCurrentWidget(
+            self.parent.app_payment
+        )
     # def ler_balanca(self):
     #
     #     try:

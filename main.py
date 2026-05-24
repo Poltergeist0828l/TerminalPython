@@ -3,6 +3,7 @@ import sys
 from PyQt5.QtWidgets import QApplication, QStackedWidget
 
 from service.SyncService import SyncService
+from telas.app_payment_screen import AppPaymentScreen
 from telas.bemvindo import TelaBemVindos
 from telas.login_screen import LoginScreen
 from telas.terminal_screen import TerminalScreen
@@ -33,7 +34,11 @@ class MainWindow(QStackedWidget):
         self.pagamento = PagamentoScreen(self)
 
         self.teclado = TecladoScreen(self)
+        self.app_payment = AppPaymentScreen(self)
 
+        self.addWidget(
+            self.app_payment
+        )
         # NOVA TELA PIX
         self.pix = PixScreen(self)
 
