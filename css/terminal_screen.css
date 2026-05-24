@@ -108,3 +108,12 @@ QScrollBar::handle:vertical {
 #linha_produto:hover {
     background-color: rgba(255, 255, 255, 0.1);
 }
+QPushButton[class="action"] {
+    background-color: #169dff;
+    color: white;
+}
+
+QPushButton[class="danger"] {
+    background-color: #ff4d4d;
+    color: white;
+}

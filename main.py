@@ -1,8 +1,10 @@
 import sys
 
+from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication, QStackedWidget
 
 from service.SyncService import SyncService
+from telas.ConfirmacaoScreen import ConfirmacaoScreen
 from telas.app_payment_screen import AppPaymentScreen
 from telas.bemvindo import TelaBemVindos
 from telas.login_screen import LoginScreen
@@ -19,53 +21,35 @@ class MainWindow(QStackedWidget):
 
         SyncService().sincronizar_produtos()
 
-        self.resize(1600, 900)
-
-        self.setWindowTitle(
-            "Terminal Inteligente"
-        )
+        self.setWindowTitle("Terminal Inteligente")
 
         self.welcome = TelaBemVindos(self)
-
         self.login = LoginScreen(self)
-
         self.terminal = TerminalScreen(self)
-
         self.pagamento = PagamentoScreen(self)
-
         self.teclado = TecladoScreen(self)
         self.app_payment = AppPaymentScreen(self)
-
-        self.addWidget(
-            self.app_payment
-        )
-        # NOVA TELA PIX
         self.pix = PixScreen(self)
+        self.confirmacao = ConfirmacaoScreen(self)
 
+        self.addWidget(self.confirmacao)
+        self.addWidget(self.app_payment)
         self.addWidget(self.welcome)
-
         self.addWidget(self.login)
-
         self.addWidget(self.teclado)
-
         self.addWidget(self.terminal)
-
         self.addWidget(self.pagamento)
-
-        # ADICIONA PIX
         self.addWidget(self.pix)
 
-        self.setCurrentWidget(
-            self.welcome
-        )
+        self.setCurrentWidget(self.welcome)
 
 
 if __name__ == "__main__":
-
     app = QApplication(sys.argv)
 
     window = MainWindow()
+    window.show()
 
-    window.showMaximized()
+    QTimer.singleShot(0, window.showFullScreen)
 
     sys.exit(app.exec_())

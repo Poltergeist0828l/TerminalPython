@@ -10,6 +10,7 @@ PyQt5-Qt5==5.15.19
 PyQt5_sip==12.18.0
 pyserial==3.5
 PyYAML==6.0.3
+redis==7.4.0
 requests==2.34.2
 serial==0.0.97
 urllib3==2.7.0

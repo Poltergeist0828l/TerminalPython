@@ -315,13 +315,6 @@ class PagamentoScreen(QWidget):
                     f"body={response_pagamento.text}"
                 )
             pagamento = response_pagamento.json()
-            print(pagamento)
-            qr_code = pagamento["qrCode"]
-            qr_code_base64 = pagamento["qrCodeBase64"]
-
-            # ======================================
-            # ABRE TELA PIX
-            # ======================================
 
             self.parent.pix.iniciar_pagamento(
                 pagamento["valor"],
