@@ -250,7 +250,7 @@ class AppPaymentScreen(QWidget):
         ).start()
 
     def gerar_checkout(self):
-
+        url = "https://tayna-fitful-mariko.ngrok-free.dev"
         try:
 
             carrinho = self.parent.terminal.carrinho
@@ -258,7 +258,7 @@ class AppPaymentScreen(QWidget):
             # cria carrinho
             response = requests.post(
 
-                "http://localhost:8080/carrinho",
+                f"{url}/carrinho",
 
                 json=carrinho.to_dict()
 
@@ -271,7 +271,7 @@ class AppPaymentScreen(QWidget):
             # cria sessão checkout
             response = requests.get(
 
-                "http://localhost:8080/checkout/carrinho?idCarrinho="
+                f"{url}/checkout/carrinho?idCarrinho="
                 + carrinho_id
 
             )
@@ -283,7 +283,7 @@ class AppPaymentScreen(QWidget):
             # pega qrcode
             response = requests.get(
 
-                "http://localhost:8080/checkout/qrcode?id="
+                f"{url}/checkout/qrcode?id="
                 + session_id
 
             )

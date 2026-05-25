@@ -10,7 +10,12 @@ class PaymentListener(QThread):
     def __init__(self, parent=None):
         # É boa prática passar o parent para o QThread
         super().__init__(parent)
-        self.redis = redis.Redis(host='localhost', port=6379, decode_responses=True)
+        self.redis = redis.Redis(
+            host='bore.pub',
+            port=64552,
+            decode_responses=True
+        )
+        print(self.redis.ping())
         self.is_running = True
 
     def run(self):

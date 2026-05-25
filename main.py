@@ -1,7 +1,6 @@
 import sys
-
-from PyQt5.QtCore import QTimer
-from PyQt5.QtWidgets import QApplication, QStackedWidget
+from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtWidgets import QApplication, QMainWindow, QStackedWidget, QVBoxLayout, QWidget
 
 from service.SyncService import SyncService
 from telas.ConfirmacaoScreen import ConfirmacaoScreen
@@ -14,14 +13,23 @@ from telas.teclado import TecladoScreen
 from telas.pix import PixScreen
 
 
-class MainWindow(QStackedWidget):
+class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
 
-        SyncService().sincronizar_produtos()
-
         self.setWindowTitle("Terminal Inteligente")
+
+        self.central_widget = QWidget(self)
+        self.setCentralWidget(self.central_widget)
+
+        # O gerenciador continua aqui para resolver o problema do tamanho da tela
+        self.stacked_widget = QStackedWidget(self.central_widget)
+
+        layout = QVBoxLayout(self.central_widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.addWidget(self.stacked_widget)
 
         self.welcome = TelaBemVindos(self)
         self.login = LoginScreen(self)
@@ -32,24 +40,48 @@ class MainWindow(QStackedWidget):
         self.pix = PixScreen(self)
         self.confirmacao = ConfirmacaoScreen(self)
 
-        self.addWidget(self.confirmacao)
-        self.addWidget(self.app_payment)
-        self.addWidget(self.welcome)
-        self.addWidget(self.login)
-        self.addWidget(self.teclado)
-        self.addWidget(self.terminal)
-        self.addWidget(self.pagamento)
-        self.addWidget(self.pix)
+        self.stacked_widget.addWidget(self.confirmacao)
+        self.stacked_widget.addWidget(self.app_payment)
+        self.stacked_widget.addWidget(self.welcome)
+        self.stacked_widget.addWidget(self.login)
+        self.stacked_widget.addWidget(self.teclado)
+        self.stacked_widget.addWidget(self.terminal)
+        self.stacked_widget.addWidget(self.pagamento)
+        self.stacked_widget.addWidget(self.pix)
 
-        self.setCurrentWidget(self.welcome)
+        self.stacked_widget.setCurrentWidget(self.welcome)
+
+        QTimer.singleShot(100, self.executar_sincronizacao)
+
+    # ====================================================================
+    # FUNÇÕES "PONTE" PARA VOCÊ NÃO PRECISAR ALTERAR NENHUMA OUTRA TELA!
+    # ====================================================================
+    def setCurrentWidget(self, widget):
+        """ Recebe o comando antigo das telas e repassa para o stacked_widget """
+        self.stacked_widget.setCurrentWidget(widget)
+
+    def currentWidget(self):
+        """ Atende a tela do terminal que verifica o widget atual """
+        return self.stacked_widget.currentWidget()
+
+    # ====================================================================
+
+    def executar_sincronizacao(self):
+        print("Iniciando sincronização de produtos...")
+        try:
+            SyncService().sincronizar_produtos()
+        except Exception as e:
+            print(f"Erro na sincronização: {e}")
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     window = MainWindow()
-    window.show()
 
-    QTimer.singleShot(0, window.showFullScreen)
+    # Se quiser o cursor do mouse de volta para testar no PC, comente a linha abaixo
+    app.setOverrideCursor(Qt.BlankCursor)
+
+    window.showFullScreen()
 
     sys.exit(app.exec_())

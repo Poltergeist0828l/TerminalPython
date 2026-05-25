@@ -230,8 +230,12 @@ class TerminalScreen(QWidget):
         self.peso_display.setText("0.000 KG")
 
         print("✨ Terminal resetado em background!")
+
     def garantir_foco(self):
-        if self.parent and self.parent.currentWidget() == self:
+        # Modificado para acessar o stacked_widget de dentro da MainWindow
+        if self.parent and self.parent.stacked_widget.currentWidget() == self:
+            # seu código de foco atual...
+
             if not self.codigo_barras.hasFocus():
                 self.codigo_barras.setFocus()
 
