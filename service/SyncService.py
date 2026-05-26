@@ -12,7 +12,7 @@ class SyncService:
 
         self.db = DatabaseProdutos()
 
-        self.API_URL = "http://localhost:8080/produtos/sync?lastSync="
+        self.API_URL = "https://tayna-fitful-mariko.ngrok-free.dev/produtos/sync?lastSync="
 
     def get_last_sync(self):
         try:
