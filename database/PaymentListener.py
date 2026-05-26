@@ -12,7 +12,7 @@ class PaymentListener(QThread):
         super().__init__(parent)
         self.redis = redis.Redis(
             host='bore.pub',
-            port=64552,
+            port=57435,
             decode_responses=True
         )
         print(self.redis.ping())
