@@ -264,7 +264,7 @@ class PagamentoScreen(QWidget):
             # cria carrinho
             response = requests.post(
 
-                "http://localhost:8080/carrinho",
+                f"{self.API_URL}/carrinho",
 
                 json=carrinho.to_dict()
 
