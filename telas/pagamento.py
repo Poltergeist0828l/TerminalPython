@@ -21,7 +21,7 @@ class PagamentoScreen(QWidget):
 
         self.parent = parent
 
-        self.API_URL = "http://localhost:8080"
+        self.API_URL = "https://tayna-fitful-mariko.ngrok-free.dev/produtos/sync?lastSync="
 
         try:
             with open(
