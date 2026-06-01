@@ -1,15 +1,16 @@
 from model.Item import Item
+from model.Terminal import Terminal
 
 
 class Carrinho:
 
-    def __init__(self, terminal_id):
+    def __init__(self):
+        terminal = Terminal.load()
 
-        self.terminal_id = terminal_id
+        self.terminal_id = terminal.uuidTerminal
 
         self.items = []
 
-    # adicionar item
     def adicionar_item(self, item: Item):
 
         for i in self.items:

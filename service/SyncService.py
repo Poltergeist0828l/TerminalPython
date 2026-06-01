@@ -27,7 +27,6 @@ class SyncService:
         with open("database/last_sync.txt", "w") as file:
             file.write(datetime.now().isoformat())
 
-    # SINCRONIZAÇÃO
     def sincronizar_produtos(self):
 
         try:

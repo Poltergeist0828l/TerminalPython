@@ -4,15 +4,14 @@ from PyQt5.QtCore import QThread, pyqtSignal
 
 
 class PaymentListener(QThread):
-    # O sinal agora é parte estrita da classe QThread
     pagamento_aprovado_signal = pyqtSignal(dict)
 
     def __init__(self, parent=None):
-        # É boa prática passar o parent para o QThread
         super().__init__(parent)
         self.redis = redis.Redis(
             host='bore.pub',
-            port=24702,
+            port=63089
+,
             decode_responses=True
         )
         print(self.redis.ping())

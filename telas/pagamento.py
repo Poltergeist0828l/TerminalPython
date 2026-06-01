@@ -21,7 +21,7 @@ class PagamentoScreen(QWidget):
 
         self.parent = parent
 
-        self.API_URL = "https://tayna-fitful-mariko.ngrok-free.dev/produtos/sync?lastSync="
+        self.API_URL = "https://tayna-fitful-mariko.ngrok-free.dev"
 
         try:
             with open(
@@ -251,17 +251,12 @@ class PagamentoScreen(QWidget):
             self.content
         )
 
-    # ======================================
-    # PIX FLOW
-    # ======================================
-
     def ir_para_pix(self):
-
+        print("gerar_checkout pix")
         try:
 
             carrinho = self.parent.terminal.carrinho
 
-            # cria carrinho
             response = requests.post(
 
                 f"{self.API_URL}/carrinho",
@@ -271,40 +266,14 @@ class PagamentoScreen(QWidget):
             )
 
             dados = response.json()
-
+            print(dados)
             carrinho_id = dados["carrinhoId"]
-            # ======================================
-            # CRIA ORDER
-            # ======================================
-
-            response_order = requests.get(
-                f"{self.API_URL}/order/finalizar",
-                params={
-                    "carrinho_id": carrinho_id
-                }
-            )
-            print(response_order.status_code)
-            print(response_order.text)
-
-            if response_order.status_code != 200:
-                raise Exception(
-                    f"Erro ao criar pedido:\n"
-                    f"status={response_order.status_code}\n"
-                    f"body={response_order.text}"
-                )
-
-            order = response_order.json()
-
-            order_id = order["orderId"]
-
-            # ======================================
-            # GERA PAGAMENTO PIX
-            # ======================================
+            print(carrinho_id)
 
             response_pagamento = requests.get(
-                f"{self.API_URL}/pagamento",
+                f"{self.API_URL}/pagamento/terminal",
                 params={
-                    "id": order_id
+                    "carrinho_id": carrinho_id
                 }
             )
 
