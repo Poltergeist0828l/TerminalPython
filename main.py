@@ -1,10 +1,10 @@
 import sys
 
-from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication, QMainWindow, QStackedWidget, QVBoxLayout, QWidget
 
 from model.Terminal import Terminal
 from service.SyncService import SyncService
+from service.TerminalSocket import TerminalSocket
 from telas.CadastroTerminalScreen import CadastroTerminalScreen
 from telas.ConfirmacaoScreen import ConfirmacaoScreen
 from telas.app_payment_screen import AppPaymentScreen
@@ -34,7 +34,6 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.stacked_widget)
 
-        # Sempre existem
         self.welcome = TelaBemVindos(self)
         self.login = LoginScreen(self)
         self.cadastro_terminal = CadastroTerminalScreen(self)
@@ -53,7 +52,12 @@ class MainWindow(QMainWindow):
 
         if Terminal.is_activated():
             self.inicializar_terminal()
+            self.socket = TerminalSocket()
+
+            self.socket.start()
+
             self.stacked_widget.setCurrentWidget(self.welcome)
+
         else:
             self.stacked_widget.setCurrentWidget(self.cadastro_terminal)
 

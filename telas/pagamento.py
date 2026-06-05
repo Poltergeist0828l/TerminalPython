@@ -13,6 +13,8 @@ from PyQt5.QtGui import QPixmap
 
 import requests
 
+from config import API_URL
+
 
 class PagamentoScreen(QWidget):
 
@@ -259,7 +261,7 @@ class PagamentoScreen(QWidget):
 
             response = requests.post(
 
-                f"{self.API_URL}/carrinho",
+                f"{API_URL}/carrinho",
 
                 json=carrinho.to_dict()
 
@@ -271,7 +273,7 @@ class PagamentoScreen(QWidget):
             print(carrinho_id)
 
             response_pagamento = requests.get(
-                f"{self.API_URL}/pagamento/terminal",
+                f"{API_URL}/pagamento/terminal",
                 params={
                     "carrinho_id": carrinho_id
                 }

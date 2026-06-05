@@ -15,6 +15,8 @@ from PyQt5.QtWidgets import (
     QPushButton
 )
 
+from config import API_URL
+
 
 class AppPaymentScreen(QWidget):
 
@@ -22,7 +24,6 @@ class AppPaymentScreen(QWidget):
         super().__init__()
 
         self.parent = parent
-
         try:
             with open("css/terminal_screen.css", "r", encoding="utf-8") as file:
                 self.setStyleSheet(file.read())
@@ -143,22 +144,22 @@ class AppPaymentScreen(QWidget):
 
     def gerar_checkout(self):
         print("gerar_checkout chamado")
-        url = "https://tayna-fitful-mariko.ngrok-free.dev"
+
         try:
             carrinho = self.parent.terminal.carrinho
 
-            response = requests.post(f"{url}/carrinho", json=carrinho.to_dict())
+            response = requests.post(f"{API_URL}/carrinho", json=carrinho.to_dict())
             print("STATUS:", response.status_code)
             dados = response.json()
             carrinho_id = dados["carrinhoId"]
 
             response = requests.get(
-                f"{url}/checkout/carrinho?idCarrinho=" + carrinho_id
+                f"{API_URL}/checkout/carrinho?idCarrinho=" + carrinho_id
             )
             dados = response.json()
             session_id = dados["sessionId"]
 
-            response = requests.get(f"{url}/checkout/qrcode?id=" + session_id)
+            response = requests.get(f"{API_URL}/checkout/qrcode?id=" + session_id)
             imagem_bytes = response.content
 
             imagem = Image.open(BytesIO(imagem_bytes))

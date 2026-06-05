@@ -2,6 +2,7 @@ from datetime import datetime
 
 import requests
 
+from config import API_URL
 from database.DatabaseProdutos import DatabaseProdutos
 from model.Produtos import Produtos
 
@@ -12,8 +13,6 @@ class SyncService:
 
         self.db = DatabaseProdutos()
 
-        self.API_URL = "https://tayna-fitful-mariko.ngrok-free.dev/produtos/sync?lastSync="
-
     def get_last_sync(self):
         try:
             with open("database/last_sync.txt", "r") as file:
@@ -23,15 +22,13 @@ class SyncService:
             return "2000-01-01T00:00:00"
 
     def save_last_sync(self):
-
         with open("database/last_sync.txt", "w") as file:
             file.write(datetime.now().isoformat())
 
     def sincronizar_produtos(self):
-
         try:
 
-            response = requests.get(self.API_URL + self.get_last_sync())
+            response = requests.get(API_URL+"/" + self.get_last_sync())
 
             if response.status_code == 200:
 

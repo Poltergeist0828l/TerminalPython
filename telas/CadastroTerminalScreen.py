@@ -12,12 +12,12 @@ from PyQt5.QtWidgets import (
     QMessageBox
 )
 
+from config import API_URL
 from model.Terminal import Terminal
 from service.TerminalInfo import TerminalInfo
 
 
 class CadastroTerminalScreen(QWidget):
-    API_URL = "https://tayna-fitful-mariko.ngrok-free.dev"
 
     def __init__(self, parent):
         if not Terminal.is_activated():
@@ -201,7 +201,7 @@ class CadastroTerminalScreen(QWidget):
             serial = TerminalInfo.get_serial_number()
 
             response = requests.get(
-                f"{self.API_URL}/terminal/serial/{serial}",
+                f"{API_URL}/terminal/serial/{serial}",
                 timeout=5
             )
 

@@ -1,43 +1,71 @@
-import redis
 import json
+
 from PyQt5.QtCore import QThread, pyqtSignal
+from websocket import WebSocket
+
+from config import WS_URL
+from model.Terminal import Terminal
 
 
 class PaymentListener(QThread):
     pagamento_aprovado_signal = pyqtSignal(dict)
 
     def __init__(self, parent=None):
+        self.terminal_id = Terminal.load().uuidTerminal
         super().__init__(parent)
-        self.redis = redis.Redis(
-            host='bore.pub',
-            port=63089
-,
-            decode_responses=True
-        )
-        print(self.redis.ping())
+
         self.is_running = True
 
     def run(self):
-        """Este método roda na thread secundária."""
-        pubsub = self.redis.pubsub()
-        pubsub.subscribe("payment_channel")
 
-        # Usamos listen() com um timeout sutil ou checamos get_message
-        # para permitir que a thread possa ser encerrada de forma limpa depois, se necessário.
-        for message in pubsub.listen():
-            if not self.is_running:
-                break
+        while self.is_running:
 
-            if message["type"] == "message":
-                try:
-                    data = json.loads(message["data"])
-                    # Emite o sinal para a thread principal do PyQt
-                    self.pagamento_aprovado_signal.emit(data)
-                except json.JSONDecodeError:
-                    print("Erro ao decodificar JSON do Redis")
+            try:
+
+                ws = WebSocket()
+
+                ws.connect(
+                    f"{WS_URL}/payment-socket/{self.terminal_id}"
+                )
+
+                print(
+                    "WebSocket conectado"
+                )
+
+                while self.is_running:
+
+                    message = ws.recv()
+
+                    if not message:
+                        continue
+
+                    try:
+
+                        data = json.loads(message)
+
+                        self.pagamento_aprovado_signal.emit(
+                            data
+                        )
+
+                    except json.JSONDecodeError:
+
+                        print(
+                            "Erro ao decodificar JSON"
+                        )
+
+            except Exception as e:
+
+                print(
+                    "Erro websocket:",
+                    e
+                )
+
+                self.sleep(5)
 
     def stop(self):
-        """Método útil para parar a thread quando fechar o app"""
+
         self.is_running = False
+
         self.quit()
+
         self.wait()

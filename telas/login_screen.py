@@ -2,6 +2,8 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QFrame
 from PyQt5.QtCore import Qt
 import requests
 
+from config import API_URL
+
 
 class LoginScreen(QWidget):
     def __init__(self, parent):
@@ -44,8 +46,7 @@ class LoginScreen(QWidget):
         root.addStretch()
 
     def continuar_anonimo(self):
-        # Envia para o Spring Boot para registrar
-        url = "http://localhost:8080/usuarios/anonimo"
+        url = f"{API_URL}/usuarios/anonimo"
         try:
             requests.post(url, json={"nome": "Visitante"}, timeout=2)
         except:

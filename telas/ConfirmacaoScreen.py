@@ -1,8 +1,7 @@
-from PyQt5.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve
-from PyQt5.QtGui import QFont, QColor
+from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QPushButton, QFrame, QProgressBar
+    QWidget, QVBoxLayout, QLabel,
+    QPushButton, QFrame, QProgressBar
 )
 
 
