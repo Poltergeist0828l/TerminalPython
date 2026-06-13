@@ -113,9 +113,7 @@ class TerminalScreen(QWidget):
         self.sidebar = QFrame()
         self.sidebar.setObjectName("sidebar")
         self.sidebar.setFixedWidth(400)
-
         layout_lateral = QVBoxLayout(self.sidebar)
-
         self.logo = QLabel()
         pixmap = QPixmap("css/ima.png")
         if not pixmap.isNull():
