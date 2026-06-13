@@ -21,8 +21,6 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        SyncService().sincronizar_produtos()
-
         self.setWindowTitle("Terminal Inteligente")
 
         self.central_widget = QWidget(self)
@@ -51,7 +49,14 @@ class MainWindow(QMainWindow):
         self.confirmacao = None
 
         if Terminal.is_activated():
+            sync = SyncService()
+
+            sync.iniciar_sync_em_thread()
+
+            print("Aplicação continua executando...")
+
             self.inicializar_terminal()
+
             self.socket = TerminalSocket()
 
             self.socket.start()

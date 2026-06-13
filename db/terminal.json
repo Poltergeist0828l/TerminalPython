@@ -1,12 +1,12 @@
 {
-    "terminalId": 2,
-    "uuidTerminal": "5ad2b553-2d14-4b44-936b-3906bdd4d8bf",
+    "terminalId": 1,
+    "uuidTerminal": "095a0e6c-47cf-4d94-a154-f8b46f1846dc",
     "serialNumber": "3db80189dd8e4231b1805a5ff061b098",
-    "nome": "Too1",
+    "nome": "T01",
     "codigo": "3db80189dd8e4231b1805a5ff061b098",
     "status": "ONLINE",
     "ativo": true,
     "activated": true,
-    "condominioId": 2,
-    "condominioNome": ""
+    "condominioId": 1,
+    "condominioNome": "Reserva buriti"
 }

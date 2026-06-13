@@ -1,4 +1,4 @@
-from datetime import datetime
+import threading
 
 import requests
 
@@ -9,33 +9,39 @@ from model.Produtos import Produtos
 
 class SyncService:
 
-    def __init__(self):
-
-        self.db = DatabaseProdutos()
-
     def get_last_sync(self):
         try:
             with open("database/last_sync.txt", "r") as file:
                 return file.read()
-
-        except:
+        except FileNotFoundError:
             return "2000-01-01T00:00:00"
 
-    def save_last_sync(self):
+    def save_last_sync(self, data):
         with open("database/last_sync.txt", "w") as file:
-            file.write(datetime.now().isoformat())
+            file.write(data)
 
     def sincronizar_produtos(self):
+        db = DatabaseProdutos()
         try:
+            last_sync = self.get_last_sync()
 
-            response = requests.get(API_URL+"/" + self.get_last_sync())
+            response = requests.get(
+                f"{API_URL}/produtos/sync",
+                params={"lastSync": last_sync},
+                timeout=10
+            )
 
-            if response.status_code == 200:
+            if response.status_code != 200:
+                print(f"Erro API: {response.status_code}")
+                return
 
-                produtos = response.json()
+            produtos = response.json()
 
-                for p in produtos:
-                    produto = Produtos(
+            ultima_data = last_sync
+
+            for p in produtos:
+                db.salvar_ou_atualizar(
+                    Produtos(
                         id=p.get("id"),
                         codigo=p.get("codigo"),
                         nome=p.get("nome"),
@@ -51,16 +57,22 @@ class SyncService:
                         update_at=p.get("updateAt"),
                         status=p.get("status")
                     )
+                )
 
-                    # salva no SQLite
-                    self.db.salvar_ou_atualizar(produto)
+                if p.get("updateAt") and p["updateAt"] > ultima_data:
+                    ultima_data = p["updateAt"]
 
-                # salva nova data de sync
-                self.save_last_sync()
+            self.save_last_sync(ultima_data)
 
-                print("Sincronização concluída!")
+            print("Sincronização concluída!")
 
         except Exception as e:
+            print(f"Erro no sync: {e}")
 
-            print("Erro no sync")
-            print(e)
+    def iniciar_sync_em_thread(self):
+        thread = threading.Thread(
+            target=self.sincronizar_produtos,
+            daemon=True
+        )
+        thread.start()
+        return thread
