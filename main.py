@@ -102,6 +102,8 @@ if __name__ == "__main__":
     # Se quiser o cursor do mouse de volta para testar no PC, comente a linha abaixo
     # app.setOverrideCursor(Qt.BlankCursor)
 
-    window.showFullScreen()
+#    window.showFullScreen()
+    window.show()
+    window.resize(800, 480)
 
     sys.exit(app.exec_())
