@@ -138,10 +138,17 @@ if __name__ == "__main__":
     # cursor oculto (modo terminal)
     app.setOverrideCursor(Qt.BlankCursor)
 
-    # trava resolução (opcional)
-    window.setFixedSize(1024, 600)
 
-    # mostra
+#    window.setFixedSize(1024, 600)
+
+    window.showFullScreen()
+    #  window.show()
+    # window.resize(800, 480)
+
+
+
+
+
     window.show()
 
     sys.exit(app.exec_())
