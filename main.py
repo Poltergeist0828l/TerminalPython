@@ -135,8 +135,8 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     screen = app.primaryScreen()
-    print("Screen size:", screen.size())
-    print("Available geometry:", screen.availableGeometry())
+    print("Screen size:", screen.size(), flush=True)
+    print("Available geometry:", screen.availableGeometry(), flush=True)
     window = MainWindow()
 
     # cursor oculto (modo terminal)
