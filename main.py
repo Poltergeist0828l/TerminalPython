@@ -1,11 +1,15 @@
 import sys
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QStackedWidget, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QStackedWidget,
+    QVBoxLayout, QWidget, QSizePolicy
+)
 
 from model.Terminal import Terminal
 from service.SyncService import SyncService
 from service.TerminalSocket import TerminalSocket
+
 from telas.CadastroTerminalScreen import CadastroTerminalScreen
 from telas.ConfirmacaoScreen import ConfirmacaoScreen
 from telas.app_payment_screen import AppPaymentScreen
@@ -24,15 +28,33 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("Terminal Inteligente")
 
+        # -----------------------------
+        # CENTRAL WIDGET
+        # -----------------------------
         self.central_widget = QWidget(self)
         self.setCentralWidget(self.central_widget)
 
-        self.stacked_widget = QStackedWidget(self.central_widget)
+        # -----------------------------
+        # STACKED RESPONSIVO
+        # -----------------------------
+        self.stacked_widget = QStackedWidget()
+        self.stacked_widget.setSizePolicy(
+            QSizePolicy.Expanding,
+            QSizePolicy.Expanding
+        )
 
-        layout = QVBoxLayout(self.central_widget)
+        # -----------------------------
+        # LAYOUT CORRETO (FULL SCREEN)
+        # -----------------------------
+        layout = QVBoxLayout()
+        self.central_widget.setLayout(layout)
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         layout.addWidget(self.stacked_widget)
 
+        # -----------------------------
+        # TELAS
+        # -----------------------------
         self.welcome = TelaBemVindos(self)
         self.login = LoginScreen(self)
         self.cadastro_terminal = CadastroTerminalScreen(self)
@@ -41,6 +63,9 @@ class MainWindow(QMainWindow):
         self.stacked_widget.addWidget(self.login)
         self.stacked_widget.addWidget(self.cadastro_terminal)
 
+        # -----------------------------
+        # OUTRAS TELAS (lazy init)
+        # -----------------------------
         self.terminal = None
         self.pagamento = None
         self.teclado = None
@@ -48,9 +73,11 @@ class MainWindow(QMainWindow):
         self.pix = None
         self.confirmacao = None
 
+        # -----------------------------
+        # START LOGIC
+        # -----------------------------
         if Terminal.is_activated():
             sync = SyncService()
-
             sync.iniciar_sync_em_thread()
 
             print("Aplicação continua executando...")
@@ -58,7 +85,6 @@ class MainWindow(QMainWindow):
             self.inicializar_terminal()
 
             self.socket = TerminalSocket()
-
             self.socket.start()
 
             self.stacked_widget.setCurrentWidget(self.welcome)
@@ -66,8 +92,9 @@ class MainWindow(QMainWindow):
         else:
             self.stacked_widget.setCurrentWidget(self.cadastro_terminal)
 
-        # QTimer.singleShot(100, self.executar_sincronizacao)
-
+    # -----------------------------
+    # INICIALIZA TELAS PESADAS
+    # -----------------------------
     def inicializar_terminal(self):
 
         if self.terminal is not None:
@@ -87,6 +114,9 @@ class MainWindow(QMainWindow):
         self.stacked_widget.addWidget(self.pagamento)
         self.stacked_widget.addWidget(self.pix)
 
+    # -----------------------------
+    # HELPERS
+    # -----------------------------
     def setCurrentWidget(self, widget):
         self.stacked_widget.setCurrentWidget(widget)
 
@@ -94,6 +124,9 @@ class MainWindow(QMainWindow):
         return self.stacked_widget.currentWidget()
 
 
+# -----------------------------
+# MAIN
+# -----------------------------
 if __name__ == "__main__":
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
@@ -102,14 +135,13 @@ if __name__ == "__main__":
 
     window = MainWindow()
 
-    # Se quiser o cursor do mouse de volta para testar no PC, comente a linha abaixo
+    # cursor oculto (modo terminal)
     app.setOverrideCursor(Qt.BlankCursor)
 
-    #window.showFullScreen()
-    #  window.show()
-    # window.resize(800, 480)
-
+    # trava resolução (opcional)
     window.setFixedSize(1024, 600)
+
+    # mostra
     window.show()
 
     sys.exit(app.exec_())
