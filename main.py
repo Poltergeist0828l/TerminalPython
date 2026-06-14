@@ -41,7 +41,6 @@ class MainWindow(QMainWindow):
         self.stacked_widget.addWidget(self.login)
         self.stacked_widget.addWidget(self.cadastro_terminal)
 
-        # Inicializa como None
         self.terminal = None
         self.pagamento = None
         self.teclado = None

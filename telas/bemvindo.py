@@ -1,7 +1,10 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QFrame
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QPushButton, QFrame, QSizePolicy
 from PyQt5.QtCore import Qt, QTimer
-from datetime import datetime
 from PyQt5.QtGui import QPixmap
+from datetime import datetime
+
+from service.HoldToExitLabel import HoldToExitLabel
+
 
 class TelaBemVindos(QWidget):
     def __init__(self, parent):
@@ -14,18 +17,31 @@ class TelaBemVindos(QWidget):
         except:
             self.setStyleSheet("background-color: black;")
 
-        layout_principal = QVBoxLayout()
+        # Layout principal (centraliza tudo)
+        layout_principal = QVBoxLayout(self)
+        layout_principal.setContentsMargins(20, 20, 20, 20)
+        layout_principal.setAlignment(Qt.AlignCenter)
 
+        # CARD
         self.card = QFrame()
         self.card.setObjectName("centralCard")
+        self.card.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
         layout_cartao = QVBoxLayout(self.card)
+        layout_cartao.setAlignment(Qt.AlignCenter)
+        layout_cartao.setContentsMargins(30, 30, 30, 30)
+        layout_cartao.setSpacing(15)
 
-        logo = QLabel()
+        # LOGO (responsivo)
+        self.logo = HoldToExitLabel(hold_time=2000)
+        self.logo.setAlignment(Qt.AlignCenter)
+        self.logo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
         logo_pixmap = QPixmap("css/ima.png")
-        if not logo_pixmap.isNull():
-            logo.setPixmap(logo_pixmap.scaled(280, 280, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-        logo.setAlignment(Qt.AlignCenter)
+        self.logo_pixmap_original = logo_pixmap
+        self.atualizar_logo(logo_pixmap)
 
+        # TEXTOS
         titulo = QLabel("BEM VINDO")
         titulo.setObjectName("title")
         titulo.setAlignment(Qt.AlignCenter)
@@ -34,35 +50,56 @@ class TelaBemVindos(QWidget):
         subtitulo.setObjectName("subtitle")
         subtitulo.setAlignment(Qt.AlignCenter)
 
-
+        # RELÓGIO
         self.relogio = QLabel()
         self.relogio.setObjectName("relogio")
         self.relogio.setAlignment(Qt.AlignCenter)
 
-        botao_entrar = QPushButton("TOQUE PARA CONTINUAR")
-        botao_entrar.setCursor(Qt.PointingHandCursor)
-        botao_entrar.setFixedWidth(400)
-        botao_entrar.clicked.connect(lambda: self.parent.setCurrentWidget(self.parent.login))
+        # BOTÃO (sem width fixa)
+        self.botao_entrar = QPushButton("TOQUE PARA CONTINUAR")
+        self.botao_entrar.setCursor(Qt.PointingHandCursor)
+        self.botao_entrar.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.botao_entrar.clicked.connect(
+            lambda: self.parent.setCurrentWidget(self.parent.login)
+        )
 
+        # montagem
         layout_cartao.addStretch()
-        layout_cartao.addWidget(logo)
-        layout_cartao.addSpacing(10)
+        layout_cartao.addWidget(self.logo)
         layout_cartao.addWidget(subtitulo)
         layout_cartao.addWidget(titulo)
-        layout_cartao.addSpacing(20)
         layout_cartao.addWidget(self.relogio)
-        layout_cartao.addSpacing(40)
-        layout_cartao.addWidget(botao_entrar, alignment=Qt.AlignCenter)
+        layout_cartao.addWidget(self.botao_entrar)
         layout_cartao.addStretch()
 
         layout_principal.addWidget(self.card)
-        self.setLayout(layout_principal)
 
+        # timer relógio
         timer = QTimer(self)
         timer.timeout.connect(self.atualizarRelogio)
         timer.start(1000)
         self.atualizarRelogio()
 
     def atualizarRelogio(self):
-        now = datetime.now()
-        self.relogio.setText(now.strftime("%H:%M:%S"))
+        self.relogio.setText(datetime.now().strftime("%H:%M:%S"))
+
+    def resizeEvent(self, event):
+        """Responsividade da logo"""
+        super().resizeEvent(event)
+
+        if self.logo_pixmap_original and not self.logo_pixmap_original.isNull():
+            w = self.width()
+
+            # escala proporcional
+            size = max(120, min(300, w // 4))
+
+            self.atualizar_logo(
+                self.logo_pixmap_original.scaled(
+                    size, size,
+                    Qt.KeepAspectRatio,
+                    Qt.SmoothTransformation
+                )
+            )
+
+    def atualizar_logo(self, pixmap):
+        self.logo.setPixmap(pixmap)
