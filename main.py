@@ -1,3 +1,4 @@
+import os
 import sys
 
 from PyQt5.QtCore import Qt
@@ -130,7 +131,8 @@ class MainWindow(QMainWindow):
 if __name__ == "__main__":
     QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
-
+    os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "0"
+    os.environ["QT_SCALE_FACTOR"] = "1"
     app = QApplication(sys.argv)
 
     window = MainWindow()
