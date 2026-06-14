@@ -134,7 +134,6 @@ class MainWindow(QMainWindow):
 # -----------------------------
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    app = QApplication(sys.argv)
     screen = app.primaryScreen()
     print("Screen size:", screen.size())
     print("Available geometry:", screen.availableGeometry())
