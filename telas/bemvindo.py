@@ -11,18 +11,19 @@ class TelaBemVindos(QWidget):
         super().__init__()
         self.parent = parent
 
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
         try:
             with open("css/bemvindo.css", "r", encoding="utf-8") as arquivo_css:
                 self.setStyleSheet(arquivo_css.read())
         except:
             self.setStyleSheet("background-color: black;")
 
-        # Layout principal (centraliza tudo)
         layout_principal = QVBoxLayout(self)
         layout_principal.setContentsMargins(20, 20, 20, 20)
         layout_principal.setAlignment(Qt.AlignCenter)
+        layout_principal.setSizeConstraint(QVBoxLayout.SetNoConstraint)
 
-        # CARD
         self.card = QFrame()
         self.card.setObjectName("centralCard")
         self.card.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -32,7 +33,6 @@ class TelaBemVindos(QWidget):
         layout_cartao.setContentsMargins(30, 30, 30, 30)
         layout_cartao.setSpacing(15)
 
-        # LOGO (responsivo)
         self.logo = HoldToExitLabel(hold_time=2000)
         self.logo.setAlignment(Qt.AlignCenter)
         self.logo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -41,7 +41,6 @@ class TelaBemVindos(QWidget):
         self.logo_pixmap_original = logo_pixmap
         self.atualizar_logo(logo_pixmap)
 
-        # TEXTOS
         titulo = QLabel("BEM VINDO")
         titulo.setObjectName("title")
         titulo.setAlignment(Qt.AlignCenter)
@@ -50,12 +49,10 @@ class TelaBemVindos(QWidget):
         subtitulo.setObjectName("subtitle")
         subtitulo.setAlignment(Qt.AlignCenter)
 
-        # RELÓGIO
         self.relogio = QLabel()
         self.relogio.setObjectName("relogio")
         self.relogio.setAlignment(Qt.AlignCenter)
 
-        # BOTÃO (sem width fixa)
         self.botao_entrar = QPushButton("TOQUE PARA CONTINUAR")
         self.botao_entrar.setCursor(Qt.PointingHandCursor)
         self.botao_entrar.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -63,18 +60,16 @@ class TelaBemVindos(QWidget):
             lambda: self.parent.setCurrentWidget(self.parent.login)
         )
 
-        # montagem
-        layout_cartao.addStretch()
-        layout_cartao.addWidget(self.logo)
+        layout_cartao.addStretch(1)
+        layout_cartao.addWidget(self.logo, stretch=3)
         layout_cartao.addWidget(subtitulo)
         layout_cartao.addWidget(titulo)
         layout_cartao.addWidget(self.relogio)
         layout_cartao.addWidget(self.botao_entrar)
-        layout_cartao.addStretch()
+        layout_cartao.addStretch(1)
 
         layout_principal.addWidget(self.card)
 
-        # timer relógio
         timer = QTimer(self)
         timer.timeout.connect(self.atualizarRelogio)
         timer.start(1000)
@@ -84,13 +79,10 @@ class TelaBemVindos(QWidget):
         self.relogio.setText(datetime.now().strftime("%H:%M:%S"))
 
     def resizeEvent(self, event):
-        """Responsividade da logo"""
         super().resizeEvent(event)
 
         if self.logo_pixmap_original and not self.logo_pixmap_original.isNull():
             w = self.width()
-
-            # escala proporcional
             size = max(120, min(300, w // 4))
 
             self.atualizar_logo(

@@ -1,6 +1,10 @@
-QWidget, QFrame, WelcomeScreen {
+QWidget {
     background-color: #08111f;
     color: #ffffff;
+}
+
+QFrame#centralCard {
+    background-color: transparent;
     border: none;
 }
 
@@ -11,7 +15,7 @@ QLabel#title {
     background-color: transparent;
 }
 
-QLabel#subtitulo {
+QLabel#subtitle {
     font-size: 18px;
     color: #555555;
     letter-spacing: 5px;
@@ -33,8 +37,6 @@ QPushButton {
     padding: 20px;
     font-size: 18px;
     font-weight: bold;
-    min-width: 350px;
-    text-transform: uppercase;
 }
 
 QPushButton:hover {
