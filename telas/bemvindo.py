@@ -57,7 +57,7 @@ class TelaBemVindos(QWidget):
         self.botao_entrar.setCursor(Qt.PointingHandCursor)
         self.botao_entrar.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.botao_entrar.clicked.connect(
-            lambda: self.parent.setCurrentWidget(self.parent.login)
+            lambda: self.parent.setCurrentWidget(self.parent.terminal)
         )
 
         layout_cartao.addStretch(1)

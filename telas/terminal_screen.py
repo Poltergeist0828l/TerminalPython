@@ -5,12 +5,12 @@ from PyQt5.QtWidgets import (
     QLabel, QPushButton, QFrame,
     QLineEdit, QScrollArea
 )
-
 from database.DatabaseProdutos import DatabaseProdutos
 from database.PaymentListener import PaymentListener
 from model.Carrinho import Carrinho
 from model.Item import Item
 from model.Produtos import Produtos
+
 
 STYLE_BTN_MAIS = """
     QPushButton {
@@ -80,14 +80,11 @@ STYLE_BTN_CANCELAR = """
 
 
 class TerminalScreen(QWidget):
-
     def __init__(self, parent=None):
         super().__init__(parent)
-
         self.parent_app = parent
         self.db = DatabaseProdutos()
         self.carrinho = Carrinho()
-
         self.linhas: dict = {}
 
         self.listener = PaymentListener(self)
@@ -105,20 +102,29 @@ class TerminalScreen(QWidget):
         self.id_contador = 1
         self.peso_total_venda = 0.0
 
-        main_layout = QHBoxLayout(self)
+        # -----------------------------
+        # LAYOUT PRINCIPAL (VERTICAL - RETRATO)
+        # -----------------------------
+        main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
 
-        # SIDEBAR
+        # -----------------------------
+        # SIDEBAR (TOPO, HORIZONTAL)
+        # -----------------------------
         self.sidebar = QFrame()
         self.sidebar.setObjectName("sidebar")
-        self.sidebar.setFixedWidth(400)
-        layout_lateral = QVBoxLayout(self.sidebar)
+        self.sidebar.setFixedHeight(220)
+
+        layout_lateral = QHBoxLayout(self.sidebar)
+        layout_lateral.setContentsMargins(20, 10, 20, 10)
+        layout_lateral.setSpacing(20)
+
         self.logo = QLabel()
         pixmap = QPixmap("css/ima.png")
         if not pixmap.isNull():
             self.logo.setPixmap(
-                pixmap.scaled(250, 250, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                pixmap.scaled(150, 150, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             )
         self.logo.setAlignment(Qt.AlignCenter)
 
@@ -126,20 +132,31 @@ class TerminalScreen(QWidget):
         self.totalBox.setObjectName("totalBox")
         self.totalBox.setAlignment(Qt.AlignCenter)
 
-        self.status_api = QLabel("Conectando Local...")
-        self.status_api.setObjectName("api")
+        valor_box = QVBoxLayout()
+        valor_box.setSpacing(5)
+        valor_box.setAlignment(Qt.AlignVCenter)
+
+        label_valor_total = QLabel("VALOR TOTAL")
+        label_valor_total.setObjectName("labelValorTotal")
+        label_valor_total.setAlignment(Qt.AlignCenter)
+        label_valor_total.setStyleSheet("""
+            font-size: 14px;
+            font-weight: 600;
+            color: #8b949e;
+            letter-spacing: 3px;
+            background-color: transparent;
+        """)
+        valor_box.addWidget(label_valor_total)
+        valor_box.addWidget(self.totalBox)
 
         layout_lateral.addWidget(self.logo)
-        layout_lateral.addSpacing(40)
-        layout_lateral.addWidget(QLabel("VALOR TOTAL"))
-        layout_lateral.addWidget(self.totalBox)
-        layout_lateral.addStretch()
-        layout_lateral.addWidget(self.status_api)
+        layout_lateral.addLayout(valor_box, 1)
 
-        # CONTENT
+        # -----------------------------
+        # CONTENT (RESTANTE DA TELA)
+        # -----------------------------
         self.content = QFrame()
         self.content.setObjectName("content")
-
         layout_conteudo = QVBoxLayout(self.content)
 
         self.cabecalho = QLabel(
@@ -155,12 +172,10 @@ class TerminalScreen(QWidget):
         self.productsLayout = QVBoxLayout(self.productsContainer)
         self.productsLayout.setAlignment(Qt.AlignTop)
         self.productsLayout.setSpacing(5)
-
         self.scroll.setWidget(self.productsContainer)
 
         # INPUTS
         layout_inputs = QHBoxLayout()
-
         self.codigo_barras = QLineEdit()
         self.codigo_barras.setPlaceholderText("Aguardando leitura do produto...")
         self.codigo_barras.returnPressed.connect(self.readProduct)
@@ -200,7 +215,7 @@ class TerminalScreen(QWidget):
         layout_conteudo.addLayout(layout_botoes)
 
         main_layout.addWidget(self.sidebar)
-        main_layout.addWidget(self.content)
+        main_layout.addWidget(self.content, 1)
 
         # FOCO
         self.timer_foco = QTimer()
@@ -208,7 +223,6 @@ class TerminalScreen(QWidget):
         self.timer_foco.start(1000)
 
     # ================= UI =================
-
     def _texto_linha(self, id_linha, codigo, item):
         return (
             f"{id_linha:<8} "
@@ -229,7 +243,6 @@ class TerminalScreen(QWidget):
         _, _, id_linha = self.linhas[codigo]
         label.setText(self._texto_linha(id_linha, codigo, item))
 
-
     def aumentar_quantidade(self, codigo, label):
         item = self.carrinho.buscar_item(codigo)
         if not item:
@@ -243,43 +256,36 @@ class TerminalScreen(QWidget):
         item = self.carrinho.buscar_item(codigo)
         if not item:
             return
-
         item.quantidade -= 1
         self.peso_total_venda -= 1.0
-
         if item.quantidade <= 0:
             self.remover_produto(codigo, widget)
         else:
             self.atualizar_interface()
             self.atualizar_linha(codigo, label)
 
-
-
     def pagamento_aprovado(self, data):
-        print("✅ Pagamento confirmado via Redis!")
+        print("Pagamento confirmado via Redis!")
         if self.parent_app:
             self.parent_app.setCurrentWidget(self.parent_app.confirmacao)
             self.parent_app.confirmacao.mostrar_tela()
 
     def liberar_tela(self):
-        print("🔄 Limpando a tela...")
+        print("Limpando a tela...")
         self.carrinho = Carrinho()
         self.linhas.clear()
-
         while self.productsLayout.count():
             item = self.productsLayout.takeAt(0)
             widget = item.widget()
             if widget is not None:
                 widget.setParent(None)
                 widget.deleteLater()
-
         self.total = 0.0
         self.id_contador = 1
         self.peso_total_venda = 0.0
-
         self.totalBox.setText("R$ 0,00")
         self.peso_display.setText("0.000 KG")
-        print("✅ Terminal resetado!")
+        print("Terminal resetado!")
 
     def garantir_foco(self):
         if self.parent and self.parent.stacked_widget.currentWidget() == self:
@@ -313,25 +319,20 @@ class TerminalScreen(QWidget):
         item = self.carrinho.buscar_item(codigo_produto)
         if not item:
             return
-
         self.peso_total_venda -= item.quantidade * 1.0
         self.carrinho.remover_item(codigo_produto)
         self.linhas.pop(codigo_produto, None)
-
         self.totalBox.setText(self.carrinho.total_formatado())
         self.peso_display.setText(f"{self.peso_total_venda:.3f} KG")
         widget_linha.deleteLater()
 
     # ================= LEITURA =================
-
     def readProduct(self):
         barcode = self.codigo_barras.text().strip()
         if not barcode:
             return
-
         try:
             tupla = self.db.buscar_por_codigo(barcode)
-
             if not tupla:
                 self.status_api.setText("Produto não cadastrado")
                 self.status_api.setStyleSheet("color:#ff4d4d;")
@@ -341,7 +342,7 @@ class TerminalScreen(QWidget):
             produto = Produtos.from_tuple(tupla)
             codigo = produto.codigo
 
-            # Produto já está na tela — só atualiza quantidade e label
+            # Produto já está na tela: só atualiza quantidade e label
             if codigo in self.linhas:
                 item = self.carrinho.buscar_item(codigo)
                 item.quantidade += 1
@@ -353,7 +354,7 @@ class TerminalScreen(QWidget):
                 self.codigo_barras.setFocus()
                 return
 
-            # Produto novo — cria linha no layout
+            # Produto novo: cria linha no layout
             novo_item = Item(produto=produto, quantidade=1, received_weight=1.0)
             self.carrinho.adicionar_item(novo_item)
             self.peso_total_venda += 1.0
@@ -367,9 +368,9 @@ class TerminalScreen(QWidget):
 
             lbl_texto = QLabel(self._texto_linha(id_linha, codigo, item))
 
-            btn_menos = QPushButton("−")
+            btn_menos = QPushButton("-")
             btn_mais = QPushButton("+")
-            btn_remover = QPushButton("✕")
+            btn_remover = QPushButton("x")
 
             btn_menos.setStyleSheet(STYLE_BTN_MENOS)
             btn_mais.setStyleSheet(STYLE_BTN_MAIS)
@@ -395,7 +396,7 @@ class TerminalScreen(QWidget):
 
             self.productsLayout.addWidget(linha_widget)
 
-            # Registra no dicionário: codigo → (widget, label, id_linha)
+            # Registra no dicionário: codigo -> (widget, label, id_linha)
             self.linhas[codigo] = (linha_widget, lbl_texto, id_linha)
 
             self.totalBox.setText(self.carrinho.total_formatado())

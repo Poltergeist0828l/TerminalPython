@@ -61,11 +61,11 @@ class MainWindow(QMainWindow):
         # TELAS
         # -----------------------------
         self.welcome = TelaBemVindos(self)
-        self.login = LoginScreen(self)
+        #self.login = LoginScreen(self)
         self.cadastro_terminal = CadastroTerminalScreen(self)
 
         self.stacked_widget.addWidget(self.welcome)
-        self.stacked_widget.addWidget(self.login)
+        #self.stacked_widget.addWidget(self.login)
         self.stacked_widget.addWidget(self.cadastro_terminal)
 
         # -----------------------------
