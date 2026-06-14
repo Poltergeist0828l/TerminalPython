@@ -3,7 +3,7 @@ from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QFrame,
-    QLineEdit, QScrollArea
+    QLineEdit, QScrollArea, QMessageBox
 )
 from database.DatabaseProdutos import DatabaseProdutos
 from database.PaymentListener import PaymentListener
@@ -294,8 +294,10 @@ class TerminalScreen(QWidget):
 
     def ir_para_pagamento(self):
         if not self.linhas:
-            self.status_api.setText("Carrinho vazio!")
-            self.status_api.setStyleSheet("color:#ff4d4d;")
+            self.mostrar_aviso(
+                "Carrinho vazio",
+                "Adicione pelo menos um produto antes de continuar."
+            )
             return
         if self.parent_app:
             self.parent_app.pagamento.total_final.setText(self.totalBox.text())
@@ -303,8 +305,11 @@ class TerminalScreen(QWidget):
 
     def ir_para_app(self):
         if not self.linhas:
-            self.status_api.setText("Carrinho vazio!")
-            self.status_api.setStyleSheet("color:#ff4d4d;")
+            self.mostrar_aviso(
+                "Carrinho vazio",
+                "Adicione pelo menos um produto antes de continuar."
+            )
+
             return
         if self.parent_app:
             self.parent_app.app_payment.iniciar_pagamento(self.totalBox.text())
@@ -334,15 +339,16 @@ class TerminalScreen(QWidget):
         try:
             tupla = self.db.buscar_por_codigo(barcode)
             if not tupla:
-                self.status_api.setText("Produto não cadastrado")
-                self.status_api.setStyleSheet("color:#ff4d4d;")
+                self.mostrar_aviso(
+                    "Produto não encontrado",
+                    "O produto informado não está cadastrado."
+                )
                 self.codigo_barras.clear()
                 return
 
             produto = Produtos.from_tuple(tupla)
             codigo = produto.codigo
 
-            # Produto já está na tela: só atualiza quantidade e label
             if codigo in self.linhas:
                 item = self.carrinho.buscar_item(codigo)
                 item.quantidade += 1
@@ -407,3 +413,11 @@ class TerminalScreen(QWidget):
 
         except Exception as e:
             print("Erro:", e)
+
+    def mostrar_aviso(self, titulo, mensagem):
+        QMessageBox.warning(
+            self,
+            titulo,
+            mensagem,
+            QMessageBox.Ok
+        )
