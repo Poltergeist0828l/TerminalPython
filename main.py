@@ -109,7 +109,7 @@ if __name__ == "__main__":
     #  window.show()
     # window.resize(800, 480)
 
-    window.setFixedSize(600, 1024)
+    window.setFixedSize(1024, 600)
     window.show()
 
     sys.exit(app.exec_())
