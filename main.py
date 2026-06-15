@@ -86,9 +86,9 @@ class MainWindow(QMainWindow):
         self.pix = None
         self.confirmacao = None
 
-        self.internet_monitor = InternetMonitor(interval=3)
-        self.internet_monitor.status_changed.connect(self.handle_internet)
-        self.internet_monitor.start()
+        # self.internet_monitor = InternetMonitor(interval=3)
+        # self.internet_monitor.status_changed.connect(self.handle_internet)
+        # self.internet_monitor.start()
 
         if Terminal.is_activated():
             sync = SyncService()
@@ -188,7 +188,7 @@ if __name__ == "__main__":
     window = MainWindow()
 
     # cursor oculto (modo terminal)
-    app.setOverrideCursor(Qt.BlankCursor)
+    #app.setOverrideCursor(Qt.BlankCursor)
 
     #    window.setFixedSize(1024, 600)
 

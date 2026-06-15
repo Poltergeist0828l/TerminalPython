@@ -76,7 +76,6 @@ class AppPaymentScreen(QWidget):
         self.titulo.setObjectName("header")
         self.titulo.setAlignment(Qt.AlignCenter)
 
-        # ✅ Timer criado e adicionado ao layout corretamente
         self.timer_label = QLabel("05:00")
         self.timer_label.setAlignment(Qt.AlignCenter)
         self.timer_label.setStyleSheet(
@@ -112,7 +111,6 @@ class AppPaymentScreen(QWidget):
         )
         self.btn_cancelar.clicked.connect(self.cancelar_pagamento)
 
-        # ✅ Ordem correta: título → timer → loading → qr → botão
         layout_content.addWidget(self.titulo)
         layout_content.addSpacing(10)
         layout_content.addWidget(self.timer_label)
@@ -170,7 +168,7 @@ class AppPaymentScreen(QWidget):
 
             self.loading.hide()
             self.qr_label.setPixmap(pixmap)
-            self.status.setText("✓ Escaneie no aplicativo")
+            self.status.setText(" Escaneie na Camera ou no aplicativo")
             self.status.setStyleSheet("color:#62c8ff;")
 
         except Exception as e:
